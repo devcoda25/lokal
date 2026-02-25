@@ -1,5 +1,5 @@
 {
-    "name": "lokal-cli",
+    "name": "@devcoda/lokal-cli",
     "version": "1.0.0",
     "description": "CLI tool for LOKAL - Automates string extraction and AI translations",
     "main": "./dist/index.js",
