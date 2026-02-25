@@ -56,7 +56,7 @@ export class OpenAIProvider implements TranslationProvider {
                     messages: [
                         {
                             role: 'system',
-                            content: 'You are a professional translator. Translate the text accurately and naturally.'
+                            content: 'You are a professional translator. Translate the text accurately and naturally. Only respond with the translation, never with any commentary or explanations. The text to translate is enclosed in <text> XML tags.'
                         },
                         {
                             role: 'user',
@@ -107,13 +107,14 @@ export class OpenAIProvider implements TranslationProvider {
     }
 
     private buildPrompt(request: TranslationRequest): string {
-        let prompt = `Translate the following text from ${request.sourceLocale} to ${request.targetLocale}:\n\n"${request.sourceText}"`;
+        // Use XML tags to separate data from commands, preventing prompt injection
+        const safeSourceText = request.sourceText.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const safeContext = request.context
+            ? request.context.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            : '';
 
-        if (request.context) {
-            prompt += `\n\nContext: ${request.context}`;
-        }
-
-        return prompt;
+        return `<text>\nTranslate the following text from ${request.sourceLocale} to ${request.targetLocale}:\n\n${safeSourceText}\n</text>` +
+            (safeContext ? `<context>\n${safeContext}\n</context>` : '');
     }
 }
 
@@ -135,12 +136,11 @@ export class GeminiProvider implements TranslationProvider {
         const prompt = this.buildPrompt(request);
 
         try {
-            const url = `${this.baseUrl}?key=${this.apiKey}`;
-
-            const response = await fetch(url, {
+            const response = await fetch(this.baseUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'x-goog-api-key': this.apiKey,
                 },
                 body: JSON.stringify({
                     contents: [{
@@ -195,13 +195,14 @@ export class GeminiProvider implements TranslationProvider {
     }
 
     private buildPrompt(request: TranslationRequest): string {
-        let prompt = `Translate the following text from ${request.sourceLocale} to ${request.targetLocale}:\n\n"${request.sourceText}"`;
+        // Use XML tags to separate data from commands, preventing prompt injection
+        const safeSourceText = request.sourceText.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const safeContext = request.context
+            ? request.context.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            : '';
 
-        if (request.context) {
-            prompt += `\n\nContext: ${request.context}`;
-        }
-
-        return prompt;
+        return `<text>\nTranslate the following text from ${request.sourceLocale} to ${request.targetLocale}:\n\n${safeSourceText}\n</text>` +
+            (safeContext ? `<context>\n${safeContext}\n</context>` : '');
     }
 }
 
