@@ -1,11 +1,16 @@
 {
     "name": "@devcoda/lokal-cli",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "CLI tool for LOKAL - Automates string extraction and AI translations",
     "main": "./dist/index.js",
     "bin": {
         "lokal": "./bin/lokal"
     },
+    "files": [
+        "dist",
+        "bin",
+        "src"
+    ],
     "scripts": {
         "dev": "tsup --watch",
         "clean": "rm -rf dist",

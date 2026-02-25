@@ -1,10 +1,14 @@
 {
   "name": "lokal-react",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "React & React Native adapter for LOKAL - Hooks and Context Providers",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

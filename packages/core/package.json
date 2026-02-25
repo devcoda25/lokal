@@ -1,10 +1,14 @@
 {
     "name": "lokal-core",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "Core business logic for LOKAL - AST parsing, AI connectors, and storage",
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
     "types": "./dist/index.d.ts",
+    "files": [
+        "dist",
+        "src"
+    ],
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
