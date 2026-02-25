@@ -9,10 +9,15 @@
                 "^build"
             ],
             "outputs": [
-                "dist/**",
+                "packages/*/dist/**",
                 ".next/**",
                 "!.next/cache/**"
-            ]
+            ],
+            "inputs": [
+                "tsup.config.ts",
+                "packages/*/src/**"
+            ],
+            "cacheDir": ".turbo"
         },
         "dev": {
             "cache": false,

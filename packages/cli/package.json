@@ -7,7 +7,6 @@
         "lokal": "./bin/lokal"
     },
     "scripts": {
-        "build": "tsup",
         "dev": "tsup --watch",
         "clean": "rm -rf dist",
         "lint": "echo 'Use root lint command'",

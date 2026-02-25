@@ -7,7 +7,7 @@
         "packages/*"
     ],
     "scripts": {
-        "build": "turbo run build",
+        "build": "tsup",
         "dev": "turbo run dev",
         "clean": "turbo run clean",
         "lint": "eslint .",
@@ -18,7 +18,8 @@
         "@typescript-eslint/eslint-plugin": "^8.56.1",
         "@typescript-eslint/parser": "^8.56.1",
         "turbo": "^2.0.0",
-        "typescript": "^5.3.0"
+        "typescript": "^5.3.0",
+        "tsup": "^8.0.0"
     },
     "packageManager": "npm@10.0.0",
     "engines": {
