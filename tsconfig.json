@@ -20,6 +20,10 @@
         "composite": true,
         "jsx": "react-jsx"
     },
+    "include": [
+        "packages/**/*.ts",
+        "packages/**/*.tsx"
+    ],
     "exclude": [
         "node_modules",
         "dist",
