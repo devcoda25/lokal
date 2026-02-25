@@ -1,0 +1,38 @@
+{
+    "name": "lokal-core",
+    "version": "1.0.0",
+    "description": "Core business logic for LOKAL - AST parsing, AI connectors, and storage",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "clean": "rm -rf dist",
+        "lint": "eslint src/",
+        "test": "jest"
+    },
+    "dependencies": {
+        "@babel/parser": "^7.23.0",
+        "@babel/traverse": "^7.23.0",
+        "@babel/types": "^7.23.0",
+        "cosmiconfig": "^8.3.0",
+        "deepmerge": "^4.3.1"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.0",
+        "tsup": "^8.0.0",
+        "typescript": "^5.3.0"
+    },
+    "peerDependencies": {},
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}
