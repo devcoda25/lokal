@@ -40,8 +40,8 @@ export class FileStorage {
     private basePath: string;
 
     constructor(basePath: string) {
-        this.basePath = basePath;
-        this.ensureDirectoryExists(basePath);
+        this.basePath = path.resolve(basePath);
+        this.ensureDirectoryExists(this.basePath);
     }
 
     /**
@@ -119,7 +119,17 @@ export class FileStorage {
      * Get the file path for a locale
      */
     private getLocalePath(locale: string): string {
-        return path.join(this.basePath, `${locale}.json`);
+        if (locale.includes('..')) {
+            throw new Error(`Security Error: Invalid locale path contains traversal: ${locale}`);
+        }
+
+        const targetPath = path.resolve(this.basePath, `${locale}.json`);
+
+        if (!targetPath.startsWith(this.basePath)) {
+            throw new Error(`Security Error: Invalid locale path access outside of storage directory: ${locale}`);
+        }
+
+        return targetPath;
     }
 
     /**
@@ -184,6 +194,10 @@ export class FileStorage {
         const result = { ...target };
 
         for (const key in source) {
+            if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+                continue;
+            }
+
             if (source.hasOwnProperty(key)) {
                 if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
                     result[key] = this.deepMerge(target[key] || {}, source[key]);
