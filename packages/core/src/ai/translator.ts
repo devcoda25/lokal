@@ -72,8 +72,8 @@ export class OpenAIProvider implements TranslationProvider {
                 throw new Error(`OpenAI API error: ${response.status} - ${errorBody}`);
             }
 
-            const data = await response.json();
-            const translatedText = data.choices[0]?.message?.content?.trim();
+            const json = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+            const translatedText = json.choices?.[0]?.message?.content?.trim();
 
             if (!translatedText) {
                 throw new Error('No translation returned');
@@ -160,8 +160,8 @@ export class GeminiProvider implements TranslationProvider {
                 throw new Error(`Gemini API error: ${response.status} - ${errorBody}`);
             }
 
-            const data = await response.json();
-            const translatedText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            const json = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+            const translatedText = json.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
             if (!translatedText) {
                 throw new Error('No translation returned');
@@ -282,9 +282,9 @@ export class AITranslator {
                 const request = requests[i];
                 const result = results[i];
 
-                if (result.success) {
-                    this.setValueByKey(translatedData, request.context!, result.translatedText);
-                    this.existingHashes.set(request.context!, this.hashString(request.sourceText));
+                if (result.success && request.context) {
+                    this.setValueByKey(translatedData, request.context, result.translatedText);
+                    this.existingHashes.set(request.context, this.hashString(request.sourceText));
                 }
             }
         }
