@@ -16,8 +16,7 @@
             "inputs": [
                 "tsup.config.ts",
                 "packages/*/src/**"
-            ],
-            "cacheDir": ".turbo"
+            ]
         },
         "dev": {
             "cache": false,
