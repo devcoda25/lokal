@@ -15,8 +15,7 @@
   "scripts": {
     "dev": "tsup --watch",
     "clean": "rm -rf dist",
-    "lint": "echo 'Use root lint command'",
-    "test": "jest"
+    "lint": "echo 'Use root lint command'"
   },
   "dependencies": {
     "lokal-core": "*"
