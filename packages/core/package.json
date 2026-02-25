@@ -16,7 +16,7 @@
         "build": "tsup",
         "dev": "tsup --watch",
         "clean": "rm -rf dist",
-        "lint": "eslint src/",
+        "lint": "echo 'Use root lint command'",
         "test": "jest"
     },
     "dependencies": {
