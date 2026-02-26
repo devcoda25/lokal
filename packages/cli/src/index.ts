@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import { registerInitCommand } from './commands/init';
 import { registerScanCommand } from './commands/scan';
 import { registerTranslateCommand } from './commands/translate';
+import { registerWrapCommand } from './commands/wrap';
 
 const program = new Command();
 
@@ -17,6 +18,7 @@ program
 registerInitCommand(program);
 registerScanCommand(program);
 registerTranslateCommand(program);
+registerWrapCommand(program);
 
 // Global options
 program
