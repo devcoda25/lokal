@@ -140,34 +140,40 @@ export class ASTWrapper {
                 errorRecovery: true,
             });
 
-            // Track replacements to avoid duplicates
-            const processedNodes = new Set<string>();
+            // Track processed locations to avoid duplicates
+            const processedLocations = new Set<string>();
 
             traverse(ast, {
                 // Handle JSX text: <div>Hello World</div>
-                JSXText: (nodePath: NodePath<types.JSXText>) => {
-                    const node = nodePath.node;
+                JSXText: (nodePath: NodePath) => {
+                    const node = nodePath.node as types.JSXText;
                     const text = node.value.trim();
-                    const nodeKey = `${nodePath.key}-${node.loc?.start.line}-${node.loc?.start.column}`;
+                    
+                    // Get location for tracking
+                    const location = node.loc?.start;
+                    if (!location) return;
+                    
+                    const locationKey = `${location.line}:${location.column}`;
+                    if (processedLocations.has(locationKey)) return;
+                    processedLocations.add(locationKey);
 
-                    if (this.shouldExclude(text) || processedNodes.has(nodeKey)) {
+                    if (this.shouldExclude(text)) {
                         return;
                     }
-                    processedNodes.add(nodeKey);
 
                     // Check if parent already has t() wrapper
                     const parent = nodePath.parent;
-                    if (types.isCallExpression(parent)) return;
-                    if (types.isJSXExpressionContainer(parent)) return;
+                    if (parent && (types.isCallExpression(parent) || types.isJSXExpressionContainer(parent))) {
+                        return;
+                    }
 
                     const key = this.generateKey(text, filePath);
-                    const location = node.loc?.start;
 
                     wrapped.push({
                         original: text,
                         wrapped: `{${this.functionName}('${key}')}`,
                         key,
-                        line: location?.line || 0
+                        line: location.line || 0
                     });
 
                     // Replace the text node
@@ -183,14 +189,21 @@ export class ASTWrapper {
                 },
 
                 // Handle JSX attributes: <div title="Hello"></div>
-                JSXAttribute: (nodePath: NodePath<types.JSXAttribute>) => {
-                    const node = nodePath.node;
+                JSXAttribute: (nodePath: NodePath) => {
+                    const node = nodePath.node as types.JSXAttribute;
 
                     // Only process string literals
                     if (!types.isStringLiteral(node.value)) return;
 
                     const text = node.value.value;
-                    const nodeKey = `${nodePath.key}-${node.loc?.start.line}-${node.loc?.start.column}`;
+                    
+                    // Get location for tracking
+                    const location = node.loc?.start;
+                    if (!location) return;
+                    
+                    const locationKey = `attr:${location.line}:${location.column}`;
+                    if (processedLocations.has(locationKey)) return;
+                    processedLocations.add(locationKey);
 
                     // Skip certain attributes that shouldn't be translated
                     const attrName = types.isJSXIdentifier(node.name) ? node.name.name : '';
@@ -198,19 +211,17 @@ export class ASTWrapper {
                         return;
                     }
 
-                    if (this.shouldExclude(text) || processedNodes.has(nodeKey)) {
+                    if (this.shouldExclude(text)) {
                         return;
                     }
-                    processedNodes.add(nodeKey);
 
                     const key = this.generateKey(text, filePath);
-                    const location = node.loc?.start;
 
                     wrapped.push({
                         original: text,
                         wrapped: `${this.functionName}('${key}')`,
                         key,
-                        line: location?.line || 0
+                        line: location.line || 0
                     });
 
                     // Replace with function call
@@ -226,73 +237,9 @@ export class ASTWrapper {
                         )
                     );
                     modified = true;
-                },
-
-                // Handle string arguments in functions: console.log("Hello")
-                StringLiteral: (nodePath: NodePath<types.StringLiteral>) => {
-                    const node = nodePath.node;
-                    const text = node.value;
-                    const nodeKey = `${nodePath.key}-${node.loc?.start.line}-${node.loc?.start.column}`;
-
-                    // Skip if already inside a t() call
-                    let insideTranslation = false;
-                    let parent = nodePath.parent;
-                    while (parent) {
-                        if (types.isCallExpression(parent)) {
-                            const callee = parent.callee;
-                            if (types.isIdentifier(callee) && callee.name === this.functionName) {
-                                insideTranslation = true;
-                                break;
-                            }
-                        }
-                        parent = parent.parent as any;
-                    }
-                    if (insideTranslation) return;
-
-                    // Only process specific contexts (like children, props)
-                    const grandParent = nodePath.parent?.parent;
-                    if (!grandParent || !types.isJSXElement(grandParent)) {
-                        return;
-                    }
-
-                    if (this.shouldExclude(text) || processedNodes.has(nodeKey)) {
-                        return;
-                    }
-                    processedNodes.add(nodeKey);
-
-                    const key = this.generateKey(text, filePath);
-                    const location = node.loc?.start;
-
-                    wrapped.push({
-                        original: text,
-                        wrapped: `${this.functionName}('${key}')`,
-                        key,
-                        line: location?.line || 0
-                    });
-
-                    // Replace with function call
-                    nodePath.replaceWith(
-                        types.callExpression(
-                            types.identifier(this.functionName),
-                            [types.stringLiteral(key)]
-                        )
-                    );
-                    modified = true;
                 }
             });
 
-            // Generate modified content
-            if (modified) {
-                const generate = require('@babel/generator').default;
-                const output = generate(ast, {}, content);
-                return {
-                    file: filePath,
-                    wrapped,
-                    errors: [],
-                    modified: true,
-                    // Attach modified content for later retrieval
-                } as any;
-            }
         } catch (error) {
             errors.push(`AST wrapping error in ${filePath}: ${error}`);
         }
