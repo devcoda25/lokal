@@ -160,70 +160,9 @@ export class ASTWrapper {
             modified = result.modified;
 
             // Write the modified content back to the file
-            if (modified) {
-                const ast = parser.parse(content, {
-                    sourceType: 'module',
-                    plugins: [
-                        'jsx',
-                        'typescript',
-                        'jsx',
-                        'exportDefaultFrom',
-                        'exportNamespaceFrom',
-                        ['decorators', { decoratorsBeforeExport: true }],
-                    ],
-                    errorRecovery: true,
-                });
-
-                traverse(ast, {
-                    JSXText: (nodePath: NodePath) => {
-                        const node = nodePath.node as types.JSXText;
-                        const text = node.value.trim();
-                        if (!text || this.shouldExclude(text)) return;
-
-                        const parent = nodePath.parent;
-                        if (parent && (types.isCallExpression(parent) || types.isJSXExpressionContainer(parent))) {
-                            return;
-                        }
-
-                        const key = this.generateKey(text, filePath);
-                        nodePath.replaceWith(
-                            types.jSXExpressionContainer(
-                                types.callExpression(
-                                    types.identifier(this.functionName),
-                                    [types.stringLiteral(key)]
-                                )
-                            )
-                        );
-                    },
-                    JSXAttribute: (nodePath: NodePath) => {
-                        const node = nodePath.node as types.JSXAttribute;
-                        if (!types.isStringLiteral(node.value)) return;
-
-                        const text = node.value.value;
-                        const attrName = types.isJSXIdentifier(node.name) ? node.name.name : '';
-                        if (['className', 'id', 'src', 'href', 'alt', 'role'].includes(attrName)) {
-                            return;
-                        }
-                        if (this.shouldExclude(text)) return;
-
-                        const key = this.generateKey(text, filePath);
-                        nodePath.replaceWith(
-                            types.jSXAttribute(
-                                node.name,
-                                types.jSXExpressionContainer(
-                                    types.callExpression(
-                                        types.identifier(this.functionName),
-                                        [types.stringLiteral(key)]
-                                    )
-                                )
-                            )
-                        );
-                    }
-                });
-
-                // Generate code from modified AST
-                const generate = require('@babel/generator').default;
-                let output = generate(ast).code;
+            if (modified && result.modifiedContent) {
+                // Use the modified content from wrapContent
+                let output = result.modifiedContent;
                 
                 // Add import for t function if not present
                 output = this.addImportStatement(output, filePath);
@@ -335,8 +274,15 @@ export class ASTWrapper {
                     // SVG attributes - never translate
                     const svgAttributes = ['width', 'height', 'viewBox', 'd', 'fill', 'stroke', 'strokeWidth', 'stroke-width', 'x', 'y', 'cx', 'cy', 'rx', 'ry', 'x1', 'y1', 'x2', 'y2', 'points', 'transform', 'preserveAspectRatio', 'borderRadius', 'border-radius'];
                     // CSS/technical attributes - never translate
-                    const techAttributes = ['className', 'id', 'src', 'href', 'target'];
+                    const techAttributes = ['className', 'id', 'src', 'href', 'target', 'rel', 'alt', 'role', 'aria-label', 'aria-describedby'];
                     if ([...svgAttributes, ...techAttributes].includes(attrName)) {
+                        return;
+                    }
+                    
+                    // Skip technical values that shouldn't be translated
+                    const techValues = ['noopener', 'noreferrer', '_blank', 'self', 'parent', 'top'];
+                    const normalizedText = text.toLowerCase().trim();
+                    if (techValues.some(v => normalizedText === v || normalizedText.includes(v))) {
                         return;
                     }
 
