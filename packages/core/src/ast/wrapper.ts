@@ -360,7 +360,10 @@ export class ASTWrapper {
                 } else if (entry.isFile()) {
                     const ext = path.extname(entry.name);
                     if (extensions.includes(ext)) {
-                        const result = this.wrapFile(fullPath);
+                        // When dryRun is true, only analyze without modifying
+                        const result = dryRun 
+                            ? this.wrapContent(fs.readFileSync(fullPath, 'utf-8'), fullPath)
+                            : this.wrapFile(fullPath);
                         results.push(result);
                         if (result.modified) {
                             modifiedFiles++;
