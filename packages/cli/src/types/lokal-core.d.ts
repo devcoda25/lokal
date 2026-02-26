@@ -29,6 +29,36 @@ declare module 'lokal-core' {
         componentName?: string;
     }
 
+    export interface WrapOptions {
+        functionName?: string;
+        componentName?: string;
+        excludePatterns?: RegExp[];
+        keyPrefix?: string;
+    }
+
+    export interface WrappedString {
+        original: string;
+        wrapped: string;
+        key: string;
+        line: number;
+    }
+
+    export interface WrapResult {
+        file: string;
+        wrapped: WrappedString[];
+        errors: string[];
+        modified: boolean;
+    }
+
+    export class ASTWrapper {
+        constructor(options?: WrapOptions);
+        generateKey(text: string, filePath: string): string;
+        shouldExclude(text: string): boolean;
+        wrapFile(filePath: string): WrapResult;
+        wrapContent(content: string, filePath?: string): WrapResult;
+        wrapDirectory(dirPath: string, extensions?: string[], dryRun?: boolean): { results: WrapResult[], modifiedFiles: number };
+    }
+
     export class ConfigLoader {
         load(configPath?: string): Promise<LokalConfig>;
         loadSync(configPath?: string): LokalConfig;
