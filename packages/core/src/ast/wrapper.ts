@@ -331,13 +331,32 @@ export class ASTWrapper {
     /**
      * Wrap strings in a directory
      */
+    /**
+     * Check if content already has translation function/component
+     */
+    private isWrapped(content: string): boolean {
+        // Check for common translation patterns
+        const patterns = [
+            /\{[\t ]*t\(["']/,           // {t(
+            /<T\s*>[\t ]*\w+[\t ]*<\/T>/i,  // <T>key</T>
+            /\{[\t ]*useTranslation\s*\(/,  // React hooks
+        ];
+        
+        return patterns.some(pattern => pattern.test(content));
+    }
+
+    /**
+     * Wrap strings in a directory
+     */
     wrapDirectory(
         dirPath: string,
         extensions: string[] = ['.js', '.jsx', '.ts', '.tsx'],
         dryRun: boolean = false
-    ): { results: WrapResult[], modifiedFiles: number } {
+    ): { results: WrapResult[], modifiedFiles: number, errors: string[], skipped: string[] } {
         const results: WrapResult[] = [];
         let modifiedFiles = 0;
+        const allErrors: string[] = [];
+        const skipped: string[] = [];
 
         const wrapRecursive = (currentPath: string) => {
             const entries = fs.readdirSync(currentPath, { withFileTypes: true });
@@ -360,13 +379,27 @@ export class ASTWrapper {
                 } else if (entry.isFile()) {
                     const ext = path.extname(entry.name);
                     if (extensions.includes(ext)) {
-                        // When dryRun is true, only analyze without modifying
-                        const result = dryRun 
-                            ? this.wrapContent(fs.readFileSync(fullPath, 'utf-8'), fullPath)
-                            : this.wrapFile(fullPath);
-                        results.push(result);
-                        if (result.modified) {
-                            modifiedFiles++;
+                        try {
+                            // Check if already wrapped (idempotency)
+                            const content = fs.readFileSync(fullPath, 'utf-8');
+                            if (this.isWrapped(content)) {
+                                skipped.push(fullPath);
+                                continue;
+                            }
+                            
+                            // When dryRun is true, only analyze without modifying
+                            const result = dryRun 
+                                ? this.wrapContent(content, fullPath)
+                                : this.wrapFile(fullPath);
+                            results.push(result);
+                            if (result.modified) {
+                                modifiedFiles++;
+                            }
+                            if (result.errors.length > 0) {
+                                allErrors.push(...result.errors);
+                            }
+                        } catch (err) {
+                            allErrors.push(`Failed to process ${fullPath}: ${err}`);
                         }
                     }
                 }
@@ -374,7 +407,7 @@ export class ASTWrapper {
         };
 
         wrapRecursive(dirPath);
-        return { results, modifiedFiles };
+        return { results, modifiedFiles, errors: allErrors, skipped };
     }
 }
 

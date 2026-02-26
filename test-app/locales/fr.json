@@ -1,0 +1,12 @@
+{
+  "locale": "fr",
+  "data": {
+    "page_welcome_to_my_app": "Bienvenue sur mon application",
+    "page_this_is_a_test_page_for_the_wrap_command": "Ceci est une page de test pour la commande wrap.",
+    "page_click_me": "Cliquez-moi",
+    "page_about_us": "À propos de nous",
+    "page_content_here": "Contenu ici"
+  },
+  "hash": "069833560170637da78e4a95063bee62",
+  "lastUpdated": "2026-02-26T14:17:39.437Z"
+}

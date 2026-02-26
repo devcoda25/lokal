@@ -69,7 +69,29 @@ export async function wrapCommand(options: WrapOptions): Promise<void> {
             }
         }
 
-        spinner.succeed(chalk.green(`Found ${chalk.bold(totalStrings)} strings to wrap in ${chalk.bold(results.modifiedFiles)} files`));
+        // Show skipped files (already wrapped)
+        if (results.skipped && results.skipped.length > 0) {
+            console.log(chalk.bold('\n⚠ Skipped (already wrapped):'));
+            for (const file of results.skipped.slice(0, 5)) {
+                console.log(chalk.gray(`  ${path.relative(projectRoot, file)}`));
+            }
+            if (results.skipped.length > 5) {
+                console.log(chalk.gray(`  ... and ${results.skipped.length - 5} more`));
+            }
+        }
+
+        // Show errors
+        if (results.errors && results.errors.length > 0) {
+            console.log(chalk.bold('\n⚠ Errors:'));
+            for (const error of results.errors.slice(0, 5)) {
+                console.log(chalk.red(`  ${error}`));
+            }
+            if (results.errors.length > 5) {
+                console.log(chalk.red(`  ... and ${results.errors.length - 5} more`));
+            }
+        }
+
+        spinner.succeed(chalk.green(`Found ${chalk.bold(totalStrings)} strings to wrap in ${chalk.bold(fileResults.length)} files`));
 
         if (totalStrings === 0) {
             spinner.info(chalk.gray('No strings found that need wrapping.'));
