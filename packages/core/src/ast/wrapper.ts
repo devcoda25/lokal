@@ -96,6 +96,55 @@ export class ASTWrapper {
     }
 
     /**
+     * Add import statement for t function if not already present
+     */
+    private addImportStatement(content: string, filePath: string): string {
+        const importName = this.functionName;
+        
+        // Check if import already exists
+        const importRegex = new RegExp(`import\\s+{?\\s*${importName}\\s*}?\\s+from`);
+        if (importRegex.test(content)) {
+            return content;
+        }
+        
+        // Determine the import source based on file type
+        const ext = filePath.toLowerCase();
+        let importSource = 'react';
+        
+        // For non-react files, use lokal-core or local file
+        if (ext.endsWith('.js') || ext.endsWith('.jsx')) {
+            importSource = 'lokal-core';
+        }
+        
+        // Find the first import or the start of file to insert import
+        const lines = content.split('\n');
+        let insertIndex = 0;
+        
+        // Find where to insert (after any existing imports)
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line.startsWith('import ') || line.startsWith('//') || line.startsWith('/*') || line === '') {
+                // Continue looking
+                if (line === '' && i > 0 && lines[i-1].trim().startsWith('import ')) {
+                    insertIndex = i + 1;
+                    break;
+                }
+            } else {
+                insertIndex = i;
+                break;
+            }
+        }
+        
+        // Build the import statement
+        const importStatement = `import { ${importName} } from '${importSource}';\n`;
+        
+        // Insert the import
+        lines.splice(insertIndex, 0, importStatement);
+        
+        return lines.join('\n');
+    }
+
+    /**
      * Wrap strings in a file
      */
     wrapFile(filePath: string): WrapResult {
@@ -174,7 +223,11 @@ export class ASTWrapper {
 
                 // Generate code from modified AST
                 const generate = require('@babel/generator').default;
-                const output = generate(ast).code;
+                let output = generate(ast).code;
+                
+                // Add import for t function if not present
+                output = this.addImportStatement(output, filePath);
+                
                 fs.writeFileSync(filePath, output, 'utf-8');
             }
         } catch (error) {
@@ -279,7 +332,7 @@ export class ASTWrapper {
 
                     // Skip certain attributes that shouldn't be translated
                     const attrName = types.isJSXIdentifier(node.name) ? node.name.name : '';
-                    if (['className', 'id', 'src', 'href', 'alt', 'role'].includes(attrName)) {
+                    if (['className', 'id', 'src', 'href', 'alt', 'role', 'width', 'height', 'viewBox', 'd', 'fill', 'stroke', 'strokeWidth', 'stroke-width', 'x', 'y', 'cx', 'cy', 'rx', 'ry', 'x1', 'y1', 'x2', 'y2', 'points', 'transform', 'preserveAspectRatio'].includes(attrName)) {
                         return;
                     }
 
