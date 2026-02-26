@@ -332,7 +332,11 @@ export class ASTWrapper {
 
                     // Skip certain attributes that shouldn't be translated
                     const attrName = types.isJSXIdentifier(node.name) ? node.name.name : '';
-                    if (['className', 'id', 'src', 'href', 'alt', 'role', 'width', 'height', 'viewBox', 'd', 'fill', 'stroke', 'strokeWidth', 'stroke-width', 'x', 'y', 'cx', 'cy', 'rx', 'ry', 'x1', 'y1', 'x2', 'y2', 'points', 'transform', 'preserveAspectRatio'].includes(attrName)) {
+                    // SVG attributes - never translate
+                    const svgAttributes = ['width', 'height', 'viewBox', 'd', 'fill', 'stroke', 'strokeWidth', 'stroke-width', 'x', 'y', 'cx', 'cy', 'rx', 'ry', 'x1', 'y1', 'x2', 'y2', 'points', 'transform', 'preserveAspectRatio', 'borderRadius', 'border-radius'];
+                    // CSS/technical attributes - never translate
+                    const techAttributes = ['className', 'id', 'src', 'href', 'target'];
+                    if ([...svgAttributes, ...techAttributes].includes(attrName)) {
                         return;
                     }
 
