@@ -23,6 +23,7 @@ export interface WrapResult {
     wrapped: WrappedString[];
     errors: string[];
     modified: boolean;
+    modifiedContent?: string;
 }
 
 /**
@@ -52,10 +53,10 @@ export class ASTWrapper {
             .replace(/[^a-z0-9\s]/g, '')
             .trim()
             .replace(/\s+/g, '_');
-        
+
         // Get relative path for prefix
         const relativePath = path.basename(filePath, path.extname(filePath));
-        
+
         // Combine prefix + path + key
         const prefix = this.keyPrefix ? `${this.keyPrefix}_` : '';
         return `${prefix}${relativePath}_${cleaned}`;
@@ -100,12 +101,82 @@ export class ASTWrapper {
     wrapFile(filePath: string): WrapResult {
         const wrapped: WrappedString[] = [];
         const errors: string[] = [];
+        let modified = false;
 
         try {
             const content = fs.readFileSync(filePath, 'utf-8');
             const result = this.wrapContent(content, filePath);
             wrapped.push(...result.wrapped);
             errors.push(...result.errors);
+            modified = result.modified;
+
+            // Write the modified content back to the file
+            if (modified) {
+                const ast = parser.parse(content, {
+                    sourceType: 'module',
+                    plugins: [
+                        'jsx',
+                        'typescript',
+                        'jsx',
+                        'exportDefaultFrom',
+                        'exportNamespaceFrom',
+                        ['decorators', { decoratorsBeforeExport: true }],
+                    ],
+                    errorRecovery: true,
+                });
+
+                traverse(ast, {
+                    JSXText: (nodePath: NodePath) => {
+                        const node = nodePath.node as types.JSXText;
+                        const text = node.value.trim();
+                        if (!text || this.shouldExclude(text)) return;
+
+                        const parent = nodePath.parent;
+                        if (parent && (types.isCallExpression(parent) || types.isJSXExpressionContainer(parent))) {
+                            return;
+                        }
+
+                        const key = this.generateKey(text, filePath);
+                        nodePath.replaceWith(
+                            types.jSXExpressionContainer(
+                                types.callExpression(
+                                    types.identifier(this.functionName),
+                                    [types.stringLiteral(key)]
+                                )
+                            )
+                        );
+                    },
+                    JSXAttribute: (nodePath: NodePath) => {
+                        const node = nodePath.node as types.JSXAttribute;
+                        if (!types.isStringLiteral(node.value)) return;
+
+                        const text = node.value.value;
+                        const attrName = types.isJSXIdentifier(node.name) ? node.name.name : '';
+                        if (['className', 'id', 'src', 'href', 'alt', 'role'].includes(attrName)) {
+                            return;
+                        }
+                        if (this.shouldExclude(text)) return;
+
+                        const key = this.generateKey(text, filePath);
+                        nodePath.replaceWith(
+                            types.jSXAttribute(
+                                node.name,
+                                types.jSXExpressionContainer(
+                                    types.callExpression(
+                                        types.identifier(this.functionName),
+                                        [types.stringLiteral(key)]
+                                    )
+                                )
+                            )
+                        );
+                    }
+                });
+
+                // Generate code from modified AST
+                const generate = require('@babel/generator').default;
+                const output = generate(ast).code;
+                fs.writeFileSync(filePath, output, 'utf-8');
+            }
         } catch (error) {
             errors.push(`Failed to process ${filePath}: ${error}`);
         }
@@ -114,7 +185,7 @@ export class ASTWrapper {
             file: filePath,
             wrapped,
             errors,
-            modified: wrapped.length > 0
+            modified
         };
     }
 
@@ -125,6 +196,7 @@ export class ASTWrapper {
         const wrapped: WrappedString[] = [];
         const errors: string[] = [];
         let modified = false;
+        let modifiedContent: string | undefined;
 
         try {
             const ast = parser.parse(content, {
@@ -148,11 +220,11 @@ export class ASTWrapper {
                 JSXText: (nodePath: NodePath) => {
                     const node = nodePath.node as types.JSXText;
                     const text = node.value.trim();
-                    
+
                     // Get location for tracking
                     const location = node.loc?.start;
                     if (!location) return;
-                    
+
                     const locationKey = `${location.line}:${location.column}`;
                     if (processedLocations.has(locationKey)) return;
                     processedLocations.add(locationKey);
@@ -196,11 +268,11 @@ export class ASTWrapper {
                     if (!types.isStringLiteral(node.value)) return;
 
                     const text = node.value.value;
-                    
+
                     // Get location for tracking
                     const location = node.loc?.start;
                     if (!location) return;
-                    
+
                     const locationKey = `attr:${location.line}:${location.column}`;
                     if (processedLocations.has(locationKey)) return;
                     processedLocations.add(locationKey);
@@ -240,18 +312,24 @@ export class ASTWrapper {
                 }
             });
 
+            // Generate modified content if any changes were made
+            if (modified) {
+                const generate = require('@babel/generator').default;
+                modifiedContent = generate(ast).code;
+            }
+
         } catch (error) {
             errors.push(`AST wrapping error in ${filePath}: ${error}`);
         }
 
-        return { file: filePath, wrapped, errors, modified };
+        return { file: filePath, wrapped, errors, modified, modifiedContent };
     }
 
     /**
      * Wrap strings in a directory
      */
     wrapDirectory(
-        dirPath: string, 
+        dirPath: string,
         extensions: string[] = ['.js', '.jsx', '.ts', '.tsx'],
         dryRun: boolean = false
     ): { results: WrapResult[], modifiedFiles: number } {
