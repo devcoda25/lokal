@@ -45,3 +45,4 @@ coverage/
 
 # Test outputs
 test-locales-temp/
+package-lock.json  

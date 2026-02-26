@@ -22,7 +22,7 @@
     "lint": "echo 'Use root lint command'"
   },
   "dependencies": {
-    "lokal-core": "*"
+    "lokal-core": "file:../core"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

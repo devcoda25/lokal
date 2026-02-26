@@ -17,7 +17,7 @@
         "lint": "echo 'Use root lint command'"
     },
     "dependencies": {
-        "lokal-core": "workspace:*",
+        "lokal-core": "file:../core",
         "chalk": "^4.1.2",
         "commander": "^11.1.0",
         "ora": "^5.4.1"
