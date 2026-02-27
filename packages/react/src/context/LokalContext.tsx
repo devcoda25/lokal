@@ -596,8 +596,7 @@ export function useSafeTranslations(): { t: ExtendedTranslateFunction; isHydrate
     const isHydrated = useHydrated();
     
     // Simple wrapper that returns key during SSR to prevent mismatch
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const safeT: any = (key: string, params?: Record<string, string | number>): string => {
+    const safeT = (key: string, params?: Record<string, string | number>): string => {
         if (!isHydrated) {
             return key;
         }
