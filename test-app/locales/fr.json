@@ -3,9 +3,20 @@
   "data": {
     "page_welcome_to_my_app": "Bienvenue sur mon application",
     "page_this_is_a_test_page_for_the_wrap_command": "Ceci est une page de test pour la commande wrap.",
+    "page_using_t_component": "Ce texte est traduit en utilisant le composant T",
     "page_click_me": "Cliquez-moi",
     "page_about_us": "À propos de nous",
-    "page_content_here": "Contenu ici"
+    "page_content_here": "Contenu ici",
+    "items": "{{count}} élément",
+    "items_one": "{{count}} élément",
+    "items_other": "{{count}} éléments",
+    "user_action": "L'utilisateur a performed une action",
+    "user_action_male": "Il a performed une action",
+    "user_action_female": "Elle a performed une action",
+    "user_action_other": "Ils ont performed une action",
+    "color_choice": "Couleur sélectionnée",
+    "color_choice_red": "Couleur rouge sélectionnée",
+    "color_choice_blue": "Couleur bleue sélectionnée"
   },
   "hash": "069833560170637da78e4a95063bee62",
   "lastUpdated": "2026-02-26T14:17:39.437Z"
