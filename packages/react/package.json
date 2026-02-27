@@ -1,6 +1,6 @@
 {
   "name": "@devcoda/lokal-react",
-  "version": "1.3.6",
+  "version": "1.3.7",
   "description": "React & React Native adapter for LOKAL - Hooks and Context Providers",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
