@@ -220,7 +220,7 @@ storage.saveLocale('es', translated);
 Use the React adapter for easy access to translations:
 
 ```tsx
-import { LokalProvider, useTranslation } from 'lokal-react';
+import { LokalProvider, useTranslate } from 'lokal-react';
 import en from '../locales/en.json';
 import es from '../locales/es.json';
 
@@ -236,7 +236,7 @@ function App() {
 }
 
 function MyComponent() {
-  const { t } = useTranslation();
+  const t = useTranslate();
   return <h1>{t('welcome')}</h1>;
 }
 ```
