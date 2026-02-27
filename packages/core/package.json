@@ -1,6 +1,6 @@
 {
-    "name": "lokal-core",
-    "version": "1.3.7",
+    "name": "@devcoda/lokal-core",
+    "version": "1.3.8",
     "description": "Core business logic for LOKAL - AST parsing, AI connectors, and storage",
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
