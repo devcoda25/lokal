@@ -26,6 +26,13 @@ export interface WrapResult {
     modifiedContent?: string;
 }
 
+export interface WrapDirectoryResult {
+    results: WrapResult[];
+    modifiedFiles: number;
+    errors: string[];
+    skipped: string[];
+}
+
 /**
  * Auto-wrap translatable strings in JSX/TSX files
  * Converts plain text to t("key") or <T>key</T>
@@ -100,32 +107,32 @@ export class ASTWrapper {
      */
     private addImportStatement(content: string, filePath: string): string {
         const importName = this.functionName;
-        
+
         // Check if import already exists
         const importRegex = new RegExp(`import\\s+{?\\s*${importName}\\s*}?\\s+from`);
         if (importRegex.test(content)) {
             return content;
         }
-        
+
         // Determine the import source based on file type
         const ext = filePath.toLowerCase();
         let importSource = 'react';
-        
+
         // For non-react files, use lokal-core or local file
         if (ext.endsWith('.js') || ext.endsWith('.jsx')) {
             importSource = 'lokal-core';
         }
-        
+
         // Find the first import or the start of file to insert import
         const lines = content.split('\n');
         let insertIndex = 0;
-        
+
         // Find where to insert (after any existing imports)
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
             if (line.startsWith('import ') || line.startsWith('//') || line.startsWith('/*') || line === '') {
                 // Continue looking
-                if (line === '' && i > 0 && lines[i-1].trim().startsWith('import ')) {
+                if (line === '' && i > 0 && lines[i - 1].trim().startsWith('import ')) {
                     insertIndex = i + 1;
                     break;
                 }
@@ -134,13 +141,13 @@ export class ASTWrapper {
                 break;
             }
         }
-        
+
         // Build the import statement
         const importStatement = `import { ${importName} } from '${importSource}';\n`;
-        
+
         // Insert the import
         lines.splice(insertIndex, 0, importStatement);
-        
+
         return lines.join('\n');
     }
 
@@ -163,10 +170,10 @@ export class ASTWrapper {
             if (modified && result.modifiedContent) {
                 // Use the modified content from wrapContent
                 let output = result.modifiedContent;
-                
+
                 // Add import for t function if not present
                 output = this.addImportStatement(output, filePath);
-                
+
                 fs.writeFileSync(filePath, output, 'utf-8');
             }
         } catch (error) {
@@ -278,7 +285,7 @@ export class ASTWrapper {
                     if ([...svgAttributes, ...techAttributes].includes(attrName)) {
                         return;
                     }
-                    
+
                     // Skip technical values that shouldn't be translated
                     const techValues = ['noopener', 'noreferrer', '_blank', 'self', 'parent', 'top'];
                     const normalizedText = text.toLowerCase().trim();
@@ -341,7 +348,7 @@ export class ASTWrapper {
             /<T\s*>[\t ]*\w+[\t ]*<\/T>/i,  // <T>key</T>
             /\{[\t ]*useTranslation\s*\(/,  // React hooks
         ];
-        
+
         return patterns.some(pattern => pattern.test(content));
     }
 
@@ -352,7 +359,7 @@ export class ASTWrapper {
         dirPath: string,
         extensions: string[] = ['.js', '.jsx', '.ts', '.tsx'],
         dryRun: boolean = false
-    ): { results: WrapResult[], modifiedFiles: number, errors: string[], skipped: string[] } {
+    ): WrapDirectoryResult {
         const results: WrapResult[] = [];
         let modifiedFiles = 0;
         const allErrors: string[] = [];
@@ -386,9 +393,9 @@ export class ASTWrapper {
                                 skipped.push(fullPath);
                                 continue;
                             }
-                            
+
                             // When dryRun is true, only analyze without modifying
-                            const result = dryRun 
+                            const result = dryRun
                                 ? this.wrapContent(content, fullPath)
                                 : this.wrapFile(fullPath);
                             results.push(result);

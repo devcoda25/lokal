@@ -46,3 +46,7 @@ coverage/
 # Test outputs
 test-locales-temp/
 package-lock.json  
+
+# Local development apps (not published)
+lokaldev/
+test-app/

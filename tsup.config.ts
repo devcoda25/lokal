@@ -3,7 +3,7 @@ import { defineConfig, type Options } from 'tsup';
 const commonOptions: Options = {
   sourcemap: true,
   clean: true,
-  dts: false,
+  dts: true,
   splitting: false,
   format: ['cjs', 'esm'],
 };

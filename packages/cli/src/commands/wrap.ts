@@ -3,7 +3,15 @@ import * as fs from 'fs';
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { ASTWrapper, ConfigLoader, FileStorage, type WrappedString } from 'lokal-core';
+import { ASTWrapper, ConfigLoader, FileStorage, type WrappedString, type WrapResult } from 'lokal-core';
+
+// Type for wrapDirectory result
+interface WrapDirectoryResult {
+    results: WrapResult[];
+    modifiedFiles: number;
+    errors: string[];
+    skipped: string[];
+}
 
 interface WrapOptions {
     config?: string;
@@ -32,7 +40,7 @@ export async function wrapCommand(options: WrapOptions): Promise<void> {
         }
 
         const projectRoot = process.cwd();
-        
+
         // Determine source directory
         const sourceDir = options.src
             ? path.resolve(projectRoot, options.src)
@@ -53,12 +61,12 @@ export async function wrapCommand(options: WrapOptions): Promise<void> {
         spinner.text = `Scanning ${chalk.cyan(sourceDir)} for translatable strings...`;
 
         // First pass: collect all wrapped strings without modifying
-        const results = wrapper.wrapDirectory(sourceDir, ['.js', '.jsx', '.ts', '.tsx'], true);
-        
+        const results = wrapper.wrapDirectory(sourceDir, ['.js', '.jsx', '.ts', '.tsx'], true) as WrapDirectoryResult;
+
         // Count total strings to wrap
         let totalStrings = 0;
         const fileResults: { file: string, wrapped: WrappedString[] }[] = [];
-        
+
         for (const result of results.results) {
             if (result.wrapped.length > 0) {
                 fileResults.push({
@@ -115,14 +123,14 @@ export async function wrapCommand(options: WrapOptions): Promise<void> {
             if (fileResults.length > 10) {
                 console.log(chalk.gray(`\n... and ${fileResults.length - 10} more files`));
             }
-            
+
             console.log(chalk.bold('\n⚠ This will modify your source files!'));
             console.log(chalk.gray('Use --dry-run to preview without making changes'));
         } else {
             // Dry run - show what would be changed
             console.log(chalk.bold('\nDry Run - Files that would be modified:'));
             for (const fileResult of fileResults) {
-                console.log(chalk.cyan(`  ${path.relative(projectRoot, fileResult.file)}`) + 
+                console.log(chalk.cyan(`  ${path.relative(projectRoot, fileResult.file)}`) +
                     chalk.gray(` (${fileResult.wrapped.length} strings)`));
             }
         }
@@ -149,7 +157,7 @@ export async function wrapCommand(options: WrapOptions): Promise<void> {
         // Also update the locale file with the new keys
         const outputDir = path.resolve(projectRoot, config.outputDir);
         const storage = new FileStorage(outputDir);
-        
+
         // Collect all new keys
         const newKeys: Record<string, string> = {};
         for (const fileResult of fileResults) {
@@ -162,7 +170,7 @@ export async function wrapCommand(options: WrapOptions): Promise<void> {
         const defaultLocale = config.defaultLocale;
         const existingLocale = storage.loadLocale(defaultLocale);
         let existingData: Record<string, any> = {};
-        
+
         if (existingLocale) {
             existingData = existingLocale.data as Record<string, any>;
         }
@@ -177,7 +185,7 @@ export async function wrapCommand(options: WrapOptions): Promise<void> {
         console.log(chalk.bold('\nNext steps:'));
         console.log(chalk.gray('  1. Review the changes in your source files'));
         console.log(chalk.gray('  2. Run ') + chalk.cyan('npx lokal translate') + chalk.gray(' to translate to other locales'));
-        
+
     } catch (error) {
         spinner.fail(chalk.red(`Wrap failed: ${error}`));
         if (options.verbose) {
