@@ -1,6 +1,6 @@
 {
   "name": "@devcoda/lokal-react",
-  "version": "1.3.9",
+  "version": "1.3.10",
   "description": "React & React Native adapter for LOKAL - Hooks and Context Providers",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -22,7 +22,7 @@
     "lint": "echo 'Use root lint command'"
   },
   "dependencies": {
-    "@devcoda/lokal-core": "^1.3.8"
+    "@devcoda/lokal-core": "^1.3.10"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { LocaleData } from 'lokal-core';
+import type { LocaleData } from '@devcoda/lokal-core';
 import type { ExtendedTranslateFunction, StorageInterface } from '../context/LokalContext';
 
 // Re-implement the translation logic for standalone use

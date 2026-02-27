@@ -23,7 +23,7 @@ export default defineConfig([
     entry: ['packages/cli/src/index.ts'],
     outDir: 'packages/cli/dist',
     platform: 'node',
-    external: ['@devcoda/lokal-core', 'lokal-core', 'chalk', 'commander', 'ora'],
+    external: ['@devcoda/lokal-core', 'chalk', 'commander', 'ora'],
   },
   // React package - external for lokal-core
   {
@@ -31,6 +31,6 @@ export default defineConfig([
     entry: ['packages/react/src/index.ts'],
     outDir: 'packages/react/dist',
     platform: 'browser',
-    external: ['@devcoda/lokal-core', 'lokal-core', 'react'],
+    external: ['@devcoda/lokal-core', 'react'],
   },
 ]);

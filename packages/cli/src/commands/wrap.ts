@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { ASTWrapper, ConfigLoader, FileStorage, type WrappedString, type WrapResult } from 'lokal-core';
+import { ASTWrapper, ConfigLoader, FileStorage, type WrappedString, type WrapResult } from '@devcoda/lokal-core';
 
 // Type for wrapDirectory result
 interface WrapDirectoryResult {

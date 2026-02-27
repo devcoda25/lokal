@@ -2,7 +2,7 @@ import * as path from 'path';
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { ASTParser, ConfigLoader, FileStorage, type ExtractedString } from 'lokal-core';
+import { ASTParser, ConfigLoader, FileStorage, type ExtractedString } from '@devcoda/lokal-core';
 
 interface ScanOptions {
     config?: string;

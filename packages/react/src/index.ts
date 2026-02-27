@@ -30,4 +30,4 @@ export type {
 } from './context/LokalContext';
 
 // Re-export types from lokal-core
-export type { LocaleData } from 'lokal-core';
+export type { LocaleData } from '@devcoda/lokal-core';

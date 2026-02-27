@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import type { LocaleData } from 'lokal-core';
+import type { LocaleData } from '@devcoda/lokal-core';
 
 // ============================================
 // Type Definitions

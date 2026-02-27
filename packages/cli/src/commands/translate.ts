@@ -8,7 +8,7 @@ import {
     AITranslator,
     TranslationProviderFactory,
     type LocaleData
-} from 'lokal-core';
+} from '@devcoda/lokal-core';
 
 interface TranslateOptions {
     config?: string;
